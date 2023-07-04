@@ -2,15 +2,14 @@
 #include "FileAccess.h"
 #include "helpers.h"
 
-
 FileAccess::FileAccess(const char* permissions)
 {
 	strCpy(this->permissions, permissions);
 	this->permissions[ACCES_RIGHTS_LEN] = '\0';
 }
+
 FileAccess::FileAccess() = default;
 
-//help from chat gpt
 bool FileAccess::canRead(char role) const
 {
 	switch (role)

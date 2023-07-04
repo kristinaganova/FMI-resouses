@@ -8,7 +8,7 @@ FileAccess::FileAccess(const char* permissions)
 	this->permissions[ACCES_RIGHTS_LEN] = '\0';
 }
 
-FileAccess::FileAccess() = default;
+FileAccess::FileAccess() : permissions(""), role('\0') {}
 
 bool FileAccess::canRead(char role) const
 {

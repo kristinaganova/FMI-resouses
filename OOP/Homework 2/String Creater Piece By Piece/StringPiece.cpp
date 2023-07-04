@@ -104,12 +104,20 @@ void StringPiece::appendInTheBeginning(const char* str, unsigned int len)
         throw std::out_of_range("Maximum reached");
     }
 
-    memmove(_str + len, _str, oldLen);
-    strncpy(_str, str, len);
-    _str[newLen] = '\0';
-    _start = 0;
+    for (unsigned int i = oldLen; i > 0; --i)
+    {
+        _str[_start + i + len - 1] = _str[_start + i - 1];
+    }
+
+    for (unsigned int i = 0; i < len; ++i)
+    {
+        _str[_start + i] = str[i];
+    }
+
+    _start -= len;
     _end = _start + newLen;
 }
+
 
 void StringPiece::print() const
 {

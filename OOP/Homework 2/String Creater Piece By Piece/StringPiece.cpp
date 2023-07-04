@@ -13,7 +13,7 @@ namespace
 		b = temp;
 	}
 
-	void convertNumberToString(size_t num, char* str, size_t& len)
+	void convertNumberToString(size_t num, char* str, unsigned int& len)
 	{
 		len = 0;
 		size_t n = num;
@@ -39,159 +39,155 @@ namespace
 }
 
 StringPiece::StringPiece()
-	: _begin(nullptr), _end(nullptr) {}
-
-StringPiece::StringPiece(const char* begin, const char* end)
-	: _begin(begin), _end(end) {}
+    : _start(0), _end(0)
+{
+    _str[0] = '\0';
+}
 
 StringPiece::StringPiece(const char* str)
-	: _begin(str), _end(str + strlen(str)) {}
+    : _start(0), _end(strlen(str))
+{
+    strncpy(_str, str, MAX_PIECE_LEN);
+    _str[MAX_PIECE_LEN] = '\0';
+}
+
+StringPiece::StringPiece(const char* str, unsigned int start, unsigned int end)
+    : _start(start), _end(end)
+{
+    strncpy(_str, str + start, end - start);
+    _str[end - start] = '\0';
+}
 
 const char* StringPiece::c_str() const
 {
-	if (_begin == nullptr)
-	{
-		return "";
-	}
-	size_t len = length();
-	char* str = new char[len + 1];
-	strcpy(str, _begin);
-	str[len] = '\0';
-	return str;
+    return _str;
 }
 
 const char* StringPiece::get() const
 {
-	return _begin;
+    return _str;
 }
 
 void StringPiece::set(const char* str)
 {
-	_begin = str;
-	_end = str + strlen(str);
+    strncpy(_str, str, MAX_PIECE_LEN);
+    _str[MAX_PIECE_LEN] = '\0';
+    _start = 0;
+    _end = strlen(str);
 }
 
 size_t StringPiece::length() const
 {
-	return _end - _begin;
+    return _end - _start;
 }
 
-void StringPiece::append(const char* str, size_t len)
+void StringPiece::append(const char* str, unsigned int len)
 {
-	size_t oldLen = length();
-	char* newStr = new char[oldLen + len];
+    unsigned int oldLen = length();
+    unsigned int newLen = oldLen + len;
+    if (newLen > MAX_PIECE_LEN)
+    {
+        throw std::out_of_range("Maximum reached");
+    }
 
-	for (size_t i = 0; i < oldLen; ++i) 
-	{
-		newStr[i] = _begin[i];
-	}
-	for (size_t i = 0; i < len; ++i) 
-	{
-		newStr[i + oldLen] = str[i];
-	}
-
-	_begin = newStr;
-	_end = newStr + oldLen + len;
+    strncpy(_str + oldLen, str, len);
+    _str[newLen] = '\0';
+    _end = _start + newLen;
 }
 
-void StringPiece::appendInTheBeggining(const char* str, size_t len)
+void StringPiece::appendInTheBeginning(const char* str, unsigned int len)
 {
-	size_t oldLen = length();
-	char* newStr = new char[oldLen + len];
+    unsigned int oldLen = length();
+    unsigned int newLen = oldLen + len;
+    if (newLen > MAX_PIECE_LEN)
+    {
+        throw std::out_of_range("Maximum reached");
+    }
 
-	for (size_t i = 0; i < len; i++) 
-	{
-		newStr[i] = str[i];
-	}
-	for (size_t i = 0; i < oldLen; i++)
-	{
-		newStr[len + i] = _begin[i];
-	}
-
-	_begin = newStr;
-	_end = newStr + oldLen + len;
+    memmove(_str + len, _str, oldLen);
+    strncpy(_str, str, len);
+    _str[newLen] = '\0';
+    _start = 0;
+    _end = _start + newLen;
 }
 
 void StringPiece::print() const
 {
-	size_t len = length();
-	for (const char* p = _begin; p < _end; p++)
-	{
-		std::cout << (*p);
-	}
-	std::cout << std::endl;
+    std::cout << _str << std::endl;
 }
 
 const char* StringPiece::toString() const
 {
-	return c_str();
+    return _str;
 }
 
 StringPiece& StringPiece::operator<<(const char* str)
 {
-	if (strlen(str) + length() > MAX_PIECE_LEN)
-	{
-		throw std::out_of_range("Maximum reached");
-	}
-	append(str, strlen(str));
-	return *this;
+    append(str, strlen(str));
+    return *this;
 }
 
-StringPiece& StringPiece::operator<<(size_t num)
+StringPiece& StringPiece::operator<<(unsigned int num)
 {
-	char str[MAX_DIGITS];
-	size_t len = 0;
+    char numStr[MAX_PIECE_LEN];
+    unsigned int len = 0;
 
-	convertNumberToString(num, str, len);
+    convertNumberToString(num, numStr, len);
 
-	if (len + length() > MAX_PIECE_LEN)
-	{
-		throw std::out_of_range("Maximum reached");
-	}
-	append(str, len);
-
-	return *this;
+    append(numStr, len);
+    return *this;
 }
 
 StringPiece& StringPiece::operator>>(const char* str)
 {
-	if (strlen(str) + length() > MAX_PIECE_LEN)
-	{
-		throw std::out_of_range("Maximum reached");
-	}
-	appendInTheBeggining(str, strlen(str));
-	return *this;
+    unsigned int len = strlen(str);
+    appendInTheBeginning(str, len);
+    return *this;
 }
 
-StringPiece& StringPiece::operator>>(size_t num)
+StringPiece& StringPiece::operator>>(unsigned int num)
 {
-	char str[MAX_DIGITS];
-	size_t len = 0;
+    char numStr[MAX_PIECE_LEN];
+    unsigned int len = 0;
 
-	convertNumberToString(num, str, len);
-	if (len + length() > MAX_PIECE_LEN)
-	{
-		throw std::out_of_range("Maximum reached");
-	}
-	appendInTheBeggining(str, len);
-	return *this;
+    convertNumberToString(num, numStr, len);
+    appendInTheBeginning(numStr, len);
+    return *this;
 }
 
-void StringPiece::removeFirstKChars(size_t k)
+void StringPiece::removeFirstKChars(unsigned int k)
 {
-	_begin += k;
+    if (k >= length())
+    {
+        _start = _end;
+        _str[0] = '\0';
+    }
+    else
+    {
+        _start += k;
+        strncpy(_str, _str + k, MAX_PIECE_LEN - k);
+        _str[MAX_PIECE_LEN - k] = '\0';
+    }
 }
 
-void StringPiece::removeLastKChars(size_t k)
+void StringPiece::removeLastKChars(unsigned int k)
 {
-	_end -= k;
+    if (k >= length())
+    {
+        _end = _start;
+        _str[0] = '\0';
+    }
+    else
+    {
+        _end -= k;
+        _str[_end - _start] = '\0';
+    }
 }
 
 void StringPiece::changeCharByIndex(int index, char c)
 {
-	if (index >= 0 && index < length())
-	{
-		char* p = (char*)_begin + index;
-		*p = c;
-	}
+    if (index >= 0 && index < length())
+    {
+        _str[_start + index] = c;
+    }
 }

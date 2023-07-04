@@ -1,0 +1,3 @@
+The SSO is implemented on this code using a union. There is a union in MyString called sso, which has two members: _heap and _stack. The _heap member is a pointer to the char array allocated to the heap, while the _stack member is a char array allocated to the stack.
+If a MyString object is created, its constructor checks to see if the string data fits within the defined SSO limit.
+The other functions are the same as the class we implemented in lectures.
